@@ -1,6 +1,6 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 
 const container: CSSProperties = {
@@ -15,8 +15,93 @@ function fadeUp(delay: number) {
   return {
     initial: { opacity: 0, y: 22 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.55, delay, ease },
+    transition: { duration: 1, delay, ease },
   } as const;
+}
+
+const SCRAMBLE_CHARS = "X#$%&?@!0123456789アクンエイ";
+const TARGET = "Franz";
+
+/* Typewriter — types out text after a delay, blinking cursor fades when done */
+function TypewriterText({ text, delay = 0 }: { text: string; delay?: number }) {
+  const [displayed, setDisplayed] = useState("");
+  const [cursorVisible, setCursorVisible] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    const startTimer = setTimeout(() => {
+      setCursorVisible(true);
+      let i = 0;
+      intervalRef.current = setInterval(() => {
+        i++;
+        setDisplayed(text.slice(0, i));
+        if (i >= text.length) {
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          setTimeout(() => setCursorVisible(false), 700);
+        }
+      }, 38);
+    }, delay * 1000);
+
+    return () => {
+      clearTimeout(startTimer);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [text, delay]);
+
+  return (
+    <>
+      {displayed || "\u00A0"}
+      {cursorVisible && (
+        <motion.span
+          animate={{ opacity: [1, 1, 0, 0] }}
+          transition={{ repeat: Infinity, duration: 0.8 }}
+          style={{ color: "var(--accent)", marginLeft: 1 }}
+        >
+          |
+        </motion.span>
+      )}
+    </>
+  );
+}
+
+function ScrambleText() {
+  const [display, setDisplay] = useState(TARGET);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lockedRef = useRef(0);
+
+  useEffect(() => {
+    let frame = 0;
+    lockedRef.current = 0;
+
+    intervalRef.current = setInterval(() => {
+      frame += 1;
+
+      if (frame % 3 === 0 && lockedRef.current < TARGET.length) {
+        lockedRef.current += 1;
+      }
+
+      const locked = lockedRef.current;
+
+      if (locked >= TARGET.length) {
+        setDisplay(TARGET);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        return;
+      }
+
+      const scrambled = TARGET.slice(locked)
+        .split("")
+        .map(() => SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)])
+        .join("");
+
+      setDisplay(TARGET.slice(0, locked) + scrambled);
+    }, 60);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
+
+  return <>{display}</>;
 }
 
 export function AnimatedHero() {
@@ -33,10 +118,13 @@ export function AnimatedHero() {
             fontSize: "clamp(3.4rem, 9vw, 6.5rem)",
             lineHeight: 1.0,
             letterSpacing: "-0.02em",
-            color: "var(--text)",
+            background: "linear-gradient(135deg, #ffffff 40%, var(--accent) 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
           }}
         >
-          Franz
+          <ScrambleText />
         </motion.h1>
 
         {/* Accent rule */}
@@ -64,7 +152,7 @@ export function AnimatedHero() {
             marginBottom: "0.5rem",
           }}
         >
-          Creative developer, artist, and builder.
+          <TypewriterText text="Creative developer, artist, and builder." delay={1.3} />
           <br />
           Based in Toronto.
         </motion.p>

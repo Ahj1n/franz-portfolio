@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Cursor } from "@/components/Cursor";
+import { SectionCounter } from "@/components/SectionCounter";
+import { ScrollProgressBar } from "@/components/ScrollProgressBar";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -42,7 +44,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={[outfit.variable, jetbrainsMono.variable].join(" ")}>
+        <ScrollProgressBar />
         <Cursor />
+        <SectionCounter />
         {children}
       </body>
     </html>

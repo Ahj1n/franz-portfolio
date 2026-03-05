@@ -1,6 +1,11 @@
 import type { CSSProperties } from "react";
 import { AnimatedHero, AnimatedNav } from "@/components/AnimatedHero";
 import { RevealOnScroll } from "@/components/RevealOnScroll";
+import { ProjectCard } from "@/components/ProjectCard";
+import { SkillItem } from "@/components/SkillItem";
+import type { GitHubStats as GitHubStatsType } from "@/lib/github";
+import { getGitHubStats } from "@/lib/github";
+import { GitHubStats } from "@/components/GitHubStats";
 
 /* ─────────────────────────────────────────────
    Shared styles
@@ -26,13 +31,26 @@ const divider: CSSProperties = {
   margin: "0",
 };
 
+const decorativeNumber: CSSProperties = {
+  position: "absolute",
+  top: "-0.4em",
+  left: "-0.02em",
+  fontFamily: "var(--font-body)",
+  fontWeight: 700,
+  fontSize: "clamp(8rem, 18vw, 14rem)",
+  color: "rgba(255,255,255,0.025)",
+  lineHeight: 1,
+  userSelect: "none",
+  pointerEvents: "none",
+};
+
 /* ─────────────────────────────────────────────
    Data
 ───────────────────────────────────────────── */
 const projects = [
   {
     name: "Echo",
-    year: "2024",
+    year: "2026",
     tagline: "Voice Reflection App",
     description:
       "A journaling companion that turns your mood into a personalized creative prompt. Records voice memos, analyses tone, and surfaces patterns over time.",
@@ -41,7 +59,7 @@ const projects = [
   },
   {
     name: "Portfolio",
-    year: "2025",
+    year: "2026",
     tagline: "This site",
     description:
       "Minimal personal portfolio. Built with Next.js and TypeScript.",
@@ -64,14 +82,18 @@ function Projects() {
     <section id="projects" style={{ padding: "5rem 0" }}>
       <div style={container}>
 
-        <p style={sectionLabel}>Projects</p>
+        <div style={{ position: "relative", marginBottom: "2.5rem" }}>
+          <span style={decorativeNumber} aria-hidden>01</span>
+          <p style={{ ...sectionLabel, marginBottom: 0 }}>Projects</p>
+        </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
           {projects.map((p, i) => (
             <div key={p.name}>
               {i > 0 && <hr style={divider} />}
-              <RevealOnScroll delay={i * 0.08}>
-                <article className="project-card" style={{ padding: "2.2rem 0" }}>
+              <RevealOnScroll delay={i * 0.08} variant="wipe">
+                <ProjectCard>
+                <article style={{ padding: "2.2rem 0" }}>
 
                   {/* Title row */}
                   <div style={{
@@ -163,6 +185,7 @@ function Projects() {
                   </div>
 
                 </article>
+                </ProjectCard>
               </RevealOnScroll>
             </div>
           ))}
@@ -188,7 +211,7 @@ function Projects() {
 /* ─────────────────────────────────────────────
    About + Skills
 ───────────────────────────────────────────── */
-function About() {
+function About({ stats }: { stats: GitHubStatsType }) {
   const bioParagraphs = [
     {
       text: "I\u2019m Franz — 22, Filipino-Canadian, based in Toronto. I study Computer Programming & Analysis at Seneca Polytechnic, graduating April 2026.",
@@ -208,17 +231,20 @@ function About() {
     <section id="about" style={{ padding: "5rem 0" }}>
       <div style={container}>
 
-        <p style={sectionLabel}>About</p>
+        <div style={{ position: "relative", marginBottom: "2.5rem" }}>
+          <span style={decorativeNumber} aria-hidden>02</span>
+          <p style={{ ...sectionLabel, marginBottom: 0 }}>About</p>
+        </div>
 
         <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr auto",
+          display: "flex",
+          flexWrap: "wrap",
           gap: "3rem",
           alignItems: "start",
         }}>
 
           {/* Bio */}
-          <div>
+          <div style={{ flex: "1 1 300px" }}>
             {bioParagraphs.map((para, i) => (
               <RevealOnScroll key={i} delay={i * 0.1}>
                 <p style={{
@@ -234,7 +260,7 @@ function About() {
           </div>
 
           {/* Skills */}
-          <div style={{ minWidth: 160 }}>
+          <div style={{ minWidth: 0, flex: "0 0 auto" }}>
             <p style={{
               fontFamily: "var(--font-code)",
               fontSize: "0.68rem",
@@ -251,19 +277,14 @@ function About() {
               gap: "0.45rem",
             }}>
               {skills.map(skill => (
-                <span key={skill} style={{
-                  fontFamily: "var(--font-code)",
-                  fontSize: "0.75rem",
-                  color: "#555",
-                  letterSpacing: "0.03em",
-                }}>
-                  {skill}
-                </span>
+                <SkillItem key={skill} skill={skill} />
               ))}
             </div>
           </div>
 
         </div>
+
+        <GitHubStats stats={stats} />
 
       </div>
     </section>
@@ -286,7 +307,10 @@ function Contact() {
     <section id="contact" style={{ padding: "5rem 0 4rem" }}>
       <div style={container}>
 
-        <p style={sectionLabel}>Contact</p>
+        <div style={{ position: "relative", marginBottom: "2.5rem" }}>
+          <span style={decorativeNumber} aria-hidden>03</span>
+          <p style={{ ...sectionLabel, marginBottom: 0 }}>Contact</p>
+        </div>
 
         <h2 style={{
           fontWeight: 600,
@@ -305,8 +329,8 @@ function Contact() {
               <a
                 key={link.label}
                 href={link.href}
-                target={link.href.startsWith("mailto") ? undefined : "_blank"}
-                rel="noopener noreferrer"
+                target={link.href.startsWith("mailto:") || link.href.startsWith("tel:") ? undefined : "_blank"}
+                rel={link.href.startsWith("mailto:") || link.href.startsWith("tel:") ? undefined : "noopener noreferrer"}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -382,16 +406,17 @@ function Footer() {
 /* ─────────────────────────────────────────────
    Page
 ───────────────────────────────────────────── */
-export default function Home() {
+export default async function Home() {
+  const githubStats = await getGitHubStats();
   return (
     <>
       <AnimatedNav />
-      <main>
+      <main id="main-content">
         <AnimatedHero />
         <hr style={divider} />
         <Projects />
         <hr style={divider} />
-        <About />
+        <About stats={githubStats} />
         <hr style={divider} />
         <Contact />
       </main>

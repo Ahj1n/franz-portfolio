@@ -38,6 +38,17 @@ body {
   min-height: 100dvh;
 }
 
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 9998;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -82,15 +93,25 @@ section { scroll-margin-top: 80px; }
 }
 .link-underline:hover::after { width: 100%; }
 
-/* Hide custom cursor on touch devices */
+/* Hide system cursor everywhere — custom cursor handles all states */
+*, *::before, *::after { cursor: none !important; }
+
+/* Restore system cursor on touch devices (custom cursor hidden) */
 @media (pointer: coarse) {
+  *, *::before, *::after { cursor: auto !important; }
   .custom-cursor { display: none; }
 }
 
-/* Project card hover lift */
-.project-card {
-  transition: transform 0.2s ease, border-color 0.2s ease;
+/* Project card — hover handled by ProjectCard component */
+
+/* Hide section counter on mobile */
+@media (max-width: 768px) {
+  .section-counter { display: none; }
 }
-.project-card:hover {
-  transform: translateY(-3px);
+
+/* Keyboard focus styles */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
